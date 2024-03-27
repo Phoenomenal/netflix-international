@@ -100,11 +100,16 @@ function get_profile_list(original_profiles) {
 		profiles = profiles.filter(val => !val.includes("av1-"));
 	}
 
-    if (globalOptions.use6Channels) {
-        profiles = profiles.concat([
-            "heaac-5.1-dash",
-        ]);
-    }
+	
+
+	if (globalOptions.use6Channels) {
+	    profiles = profiles.concat([
+		//"heaac-5.1-dash",
+                "ddplus-5.1-dash",
+		//"ddplus-5.1hq-dash",
+		"ddplus-atmos-dash",
+			]);
+	}
 
 	profiles = [...new Set(profiles)].sort();
 	return profiles;
@@ -129,7 +134,7 @@ do_patch(
 );
 
 do_patch(
-	"Re-enable Ctrl+Shift+Alt+B menu",
+	"Re-enable Ctrl+Shift+Alt+S menu",
 	/this\...\....\s*&&\s*this\.toggle\(\);/,
 	"this.toggle();"
 );
@@ -152,6 +157,20 @@ do_patch(
 	/preferredTextLocale:.\.preferredTextLocale/,
 	"preferredTextLocale: globalOptions.preferredTextLocale"
 );
+
+if(globalOptions.useDDPlus && MediaSource.isTypeSupported('audio/mp4; codecs="ec-3"')) {
+	do_patch(
+		"Select highest audio bitrate 1",
+		/(indexOf\(.\))(\?[^?]+)(\?[0-9]:)/,
+		"$1)$3"
+	);
+
+	do_patch(
+		"Select highest audio bitrate 2",
+		/(var\sx;if\(this\.[^\)]+)/,
+		"$1 && !globalOptions.useDDPlus"
+	);
+}
 
 // run our patched copy of playercore in a non-privileged context on the page
 window.Function(cadmium_src)();
